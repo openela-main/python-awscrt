@@ -3,8 +3,8 @@ Python bindings for the AWS Common Runtime}
 
 
 Name:           python-awscrt
-Version:        0.20.2
-Release:        3%{dist}
+Version:        0.20.5
+Release:        3%{?dist}
 
 Summary:        Python bindings for the AWS Common Runtime
 # All files are licensed under Apache-2.0, except:
@@ -15,10 +15,6 @@ License:        Apache-2.0 AND MIT AND BSD-3-Clause
 URL:            https://github.com/awslabs/aws-crt-python
 
 Source0:        %{pypi_source awscrt}
-
-# Get an open source version of the pkcs11 header file from Simo's repository.
-# https://github.com/latchset/pkcs11-headers
-Source1:        https://raw.githubusercontent.com/latchset/pkcs11-headers/main/public-domain/2.40/pkcs11.h
 
 # one test requires internet connection, skip it
 Patch0:         skip-test-requiring-network.patch
@@ -51,14 +47,6 @@ Summary:        %{summary}
 %prep
 %autosetup -p1 -n awscrt-%{version}
 
-# Bring in the pkcs11 header file from Simo's repository.
-rm -fv crt/aws-c-io/source/pkcs11/v2.40/*
-cp %{SOURCE1} crt/aws-c-io/source/pkcs11/v2.40/
-
-# Remove the third party license that goes along with
-# the removed pkcs11.h header file.
-rm -rf crt/aws-c-io/THIRD-PARTY-LICENSES.txt
-
 
 %generate_buildrequires
 %pyproject_buildrequires
@@ -88,6 +76,18 @@ PYTHONPATH="%{buildroot}%{python3_sitearch}:%{buildroot}%{python3_sitelib}" %{py
 
 
 %changelog
+* Mon Apr 29 2024 Major Hayden <major@redhat.com> - 0.20.5-3
+- Removing extra pkcs11 source now that upstream switched to public domain headers
+
+* Mon Apr 01 2024 Major Hayden <major@redhat.com> - 0.20.5-2
+- Bump revision for new build
+
+* Wed Mar 27 2024 Major Hayden <major@redhat.com> - 0.20.5-1
+- Update to 0.20.5
+
+* Tue Mar 19 2024 Major Hayden <major@redhat.com> - 0.20.2-4
+- Bump revision number for new build
+
 * Tue Feb 13 2024 Major Hayden <major@redhat.com> - 0.20.2-3
 - Remove the third party license file from excluded pkcs11.h
 
