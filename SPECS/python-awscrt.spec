@@ -3,8 +3,8 @@ Python bindings for the AWS Common Runtime}
 
 
 Name:           python-awscrt
-Version:        0.20.5
-Release:        3%{?dist}
+Version:        0.27.2
+Release:        1%{?dist}
 
 Summary:        Python bindings for the AWS Common Runtime
 # All files are licensed under Apache-2.0, except:
@@ -16,8 +16,14 @@ URL:            https://github.com/awslabs/aws-crt-python
 
 Source0:        %{pypi_source awscrt}
 
-# one test requires internet connection, skip it
-Patch0:         skip-test-requiring-network.patch
+# two tests require internet connection, skip them
+Patch0:         skip-tests-requiring-network.patch
+# SHA1 is deprecated - remove it from tests
+Patch1:         skip-SHA1-in-test_crypto.patch
+# https://github.com/awslabs/aws-c-cal/pull/225
+Patch2:         der-c.patch
+# websockets test fail fix
+Patch3:         websockets.patch
 
 BuildRequires:  python%{python3_pkgversion}-devel
 
@@ -27,9 +33,6 @@ BuildRequires:  cmake
 BuildRequires:  openssl-devel
 
 BuildRequires:  python%{python3_pkgversion}-websockets
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=2180988
-ExcludeArch:    s390x
 
 
 %description
@@ -47,17 +50,21 @@ Summary:        %{summary}
 %prep
 %autosetup -p1 -n awscrt-%{version}
 
+# relax version requirements
+sed -i -e 's/setuptools>=75\.3\.1/setuptools/' -e 's/wheel>=0\.45\.1/wheel/' pyproject.toml
+
+# stay compatible with websockets<13
+sed -i 's/websockets\.asyncio\.server/websockets.server/' test/test_websocket.py
+
+# fix for osci.rpmdeplint test - package builds with the name 'unknown'
+sed -i '/setuptools\.setup(/a\    name="awscrt",' setup.py
+
 
 %generate_buildrequires
 %pyproject_buildrequires
 
 
 %build
-%ifarch %{ix86}
-# disable SSE2 instructions to prevent a crash in aws-c-common thread handling
-# probably caused by a compiler bug
-export CFLAGS="%{optflags} -mno-sse2"
-%endif
 export AWS_CRT_BUILD_USE_SYSTEM_LIBCRYPTO=1
 %pyproject_wheel
 
@@ -76,6 +83,10 @@ PYTHONPATH="%{buildroot}%{python3_sitearch}:%{buildroot}%{python3_sitelib}" %{py
 
 
 %changelog
+* Fri Sep 05 2025 Kseniia Nivnia <knivnia@redhat.com> - 0.27.2-1
+- Update to 0.27.2
+  Resolves: RHEL-113230
+
 * Mon Apr 29 2024 Major Hayden <major@redhat.com> - 0.20.5-3
 - Removing extra pkcs11 source now that upstream switched to public domain headers
 
