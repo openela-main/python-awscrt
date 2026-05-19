@@ -22,5 +22,3 @@ index fcbcedb..ebebbcb 100644
 +            sleep(0.01)
 +
          asyncio.run_coroutine_threadsafe(self._current_connection.send(msg), self._server_loop)
- 
- 

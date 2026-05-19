@@ -55,4 +55,3 @@ index 628900f..7f2296d 100644
 +                h = Hash.sha256_new()
                  h.update(b'totally original test string')
                  digest = h.digest()
- 
